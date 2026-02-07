@@ -40,3 +40,5 @@ chrome_bot_profile/
 # OS
 .DS_Store
 Thumbs.db
+
+GITHUB_SETUP.md
