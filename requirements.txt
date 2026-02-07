@@ -1,0 +1,11 @@
+# Core dependencies
+playwright==1.49.1
+
+# Playwright will automatically install these dependencies:
+# - pyee (EventEmitter for Python)
+# - greenlet (lightweight coroutines)
+# - typing_extensions (typing support)
+
+# Installation:
+# pip install -r requirements.txt
+# playwright install chromium

@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+build/
+dist/
+*.egg-info/
+.python-version
+
+# Sensitive files
+.env
+config_custom.ini
+credentials.txt
+
+# CSV with real data
+*.csv
+!example_cards.csv
+
+# Playwright
+playwright-report/
+test-results/
+
+# Chrome bot profile (contains cookies and session data)
+chrome_bot_profile/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
