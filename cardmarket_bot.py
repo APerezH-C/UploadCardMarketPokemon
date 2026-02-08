@@ -237,45 +237,65 @@ class CardmarketBot:
             # Step 5: Fill out the form
             print(f"  [4/6] Filling out form")
 
-            # Quantity
-            quantity_selectors = [
-                "input[name*='amount']"
-            ]
-            for selector in quantity_selectors:
-                try:
-                    random_delay(0.3, 0.7)
-                    self.page.fill(selector, str(card['quantity']), timeout=3000)
-                    break
-                except:
-                    continue
+            # 1. QUANTITY -> input type="number" name="amount"
+            print(f"    -> Setting quantity: {card['quantity']}")
+            try:
+                random_delay(0.3, 0.7)
+                self.page.fill('input[type="number"][name="amount"]', str(card['quantity']), timeout=3000)
+                print(f"    -> Quantity filled: {card['quantity']}")
+            except Exception as e:
+                print(f"    [ERROR] Error filling quantity: {e}")
 
             random_delay(0.5, 1)
 
-            # Language (HTML select)
-            print(f"    -> Selecting language: {card['language']}")
+            # 2. UNIT_PRICE -> input id="price"
+            print(f"    -> Setting price: {card['price']}")
             try:
-                # Exact mapping of languages to select values
-                lang_map = {
-                    "English": "1",
-                    "French": "2",
-                    "German": "3",
-                    "Spanish": "4",
-                    "Italian": "5",
-                    "Portuguese": "8"
-                }
-
-                lang_value = lang_map.get(card['language'], None)
-                if lang_value:
-                    self.page.select_option("#idLanguage", value=lang_value, timeout=2500)
-                    print(f"    -> Language selected: {card['language']} (value={lang_value})")
-                else:
-                    # Try by label if not in mapping
-                    self.page.select_option("#idLanguage", label=card['language'], timeout=2500)
-                    print(f"    -> Language selected by label: {card['language']}")
+                # Format price with decimal point
+                price_str = str(card['price']).replace(',', '.')
+                self.page.fill('input#price', price_str, timeout=3000)
+                print(f"    -> Price filled: {price_str}")
             except Exception as e:
-                print(f"    [ERROR] Error selecting language: {e}")
+                print(f"    [ERROR] Error filling price: {e}")
 
-            # Condition (HTML select)
+            random_delay(0.5, 1)
+
+            # 3. QUALITY
+            # - NORMAL: No hacer nada
+            # - HOLO: Escribir "HOLO" en observaciones
+            # - REVERSE HOLO: Marcar la casilla isReverseHolo
+            if card['reverse_holo']:
+                print(f"    -> Checking Reverse Holo checkbox")
+                try:
+                    self.page.check('input[type="checkbox"][name="isReverseHolo"]', timeout=3000)
+                    print(f"    -> Reverse Holo checked")
+                except Exception as e:
+                    print(f"    [ERROR] Could not check Reverse Holo: {e}")
+
+            if card['comments']:  # If HOLO, write in comments
+                print(f"    -> Writing comments: {card['comments']}")
+                try:
+                    # Try different selectors for comments field
+                    comments_selectors = [
+                        "input[name='comments']",
+                        "textarea[name='comments']",
+                        "input[name*='comment']",
+                        "textarea[name*='comment']",
+                        "#comments"
+                    ]
+                    for selector in comments_selectors:
+                        try:
+                            self.page.fill(selector, card['comments'], timeout=2500)
+                            print(f"    -> Comments filled with selector: {selector}")
+                            break
+                        except:
+                            continue
+                except Exception as e:
+                    print(f"    [ERROR] Could not fill comments: {e}")
+
+            random_delay(0.5, 1)
+
+            # 4. CONDITION -> select name="idCondition"
             print(f"    -> Selecting condition: {card['condition']}")
             try:
                 # Exact mapping of conditions to select values
@@ -292,74 +312,71 @@ class CardmarketBot:
 
                 condition_value = condition_map.get(card['condition'], None)
                 if condition_value:
-                    self.page.select_option("#idCondition", value=condition_value, timeout=2500)
+                    self.page.select_option('select[name="idCondition"]', value=condition_value, timeout=3000)
                     print(f"    -> Condition selected: {card['condition']} (value={condition_value})")
                 else:
                     # Try by label if not in mapping
-                    self.page.select_option("#idCondition", label=card['condition'], timeout=2500)
+                    self.page.select_option('select[name="idCondition"]', label=card['condition'], timeout=3000)
                     print(f"    -> Condition selected by label: {card['condition']}")
             except Exception as e:
                 print(f"    [ERROR] Error selecting condition: {e}")
 
-            # Comments
-            comments_selectors = [
-                "input[name*='comment']",
-                "textarea[name*='comment']",
-                "#comments"
-            ]
-            comments_text = card['comments']
-            for selector in comments_selectors:
-                try:
-                    self.page.fill(selector, comments_text, timeout=2500)
-                    break
-                except:
-                    continue
+            random_delay(0.5, 1)
 
-            # Reverse Holo (checkbox)
-            if card['reverse_holo']:
-                print(f"    -> Checking Reverse Holo")
-                try:
-                    self.page.check('input[type="checkbox"][name="isReverseHolo"]', timeout=2500)
-                    print(f"    -> Reverse Holo checked")
-                except Exception as e:
-                    print(f"    [ERROR] Could not check Reverse Holo: {e}")
+            # 5. LANGUAGE -> select name="idLanguage"
+            # Los idiomas pueden ir tanto en español como en inglés
+            print(f"    -> Selecting language: {card['language']}")
+            try:
+                # Exact mapping of languages to select values (English and Spanish)
+                lang_map = {
+                    # English
+                    "English": "1",
+                    "French": "2",
+                    "German": "3",
+                    "Spanish": "4",
+                    "Italian": "5",
+                    "Portuguese": "8",
+                    # Español
+                    "Inglés": "1",
+                    "Francés": "2",
+                    "Alemán": "3",
+                    "Español": "4",
+                    "Italiano": "5",
+                    "Portugués": "8"
+                }
 
-            # Price
-            price_selectors = [
-                "input[name*='price']",
-                "#price"
-            ]
-            # Format price with decimal point
-            price_str = str(card['price']).replace(',', '.')
-            for selector in price_selectors:
-                try:
-                    self.page.fill(selector, price_str, timeout=2500)
-                    break
-                except:
-                    continue
+                lang_value = lang_map.get(card['language'], None)
+                if lang_value:
+                    self.page.select_option('select[name="idLanguage"]', value=lang_value, timeout=3000)
+                    print(f"    -> Language selected: {card['language']} (value={lang_value})")
+                else:
+                    # Try by label if not in mapping
+                    self.page.select_option('select[name="idLanguage"]', label=card['language'], timeout=3000)
+                    print(f"    -> Language selected by label: {card['language']}")
+            except Exception as e:
+                print(f"    [ERROR] Error selecting language: {e}")
 
-            # Step 6: Click "Sell" button
+            # Step 6: Click "Poner en venta" button
             print(f"  [5/6] Putting up for sale")
 
             # Pause as if reviewing the form
             random_delay(1.5, 3)
             random_scroll(self.page)
 
-            submit_selectors = [
-                "text=Sell",
-                "button:has-text('Sell')",
-                "button[type='submit']",
-                "input[type='submit']",
-                ".btn-primary[type='submit']"
-            ]
-
-            for selector in submit_selectors:
+            # Exact selector for the submit button
+            # <input type="submit" value="Poner en venta" title="Poner en venta" class="btn btn-primary btn-sm">
+            try:
+                random_delay(0.5, 1)
+                self.page.click('input[type="submit"][value="Poner en venta"]', timeout=3000)
+                print(f"    -> Submit button clicked")
+            except Exception as e:
+                print(f"    [ERROR] Could not click submit button: {e}")
+                # Try alternative selector as fallback
                 try:
-                    random_delay(0.5, 1)
-                    self.page.click(selector, timeout=2500)
-                    break
-                except:
-                    continue
+                    self.page.click('input[type="submit"].btn-primary.btn-sm', timeout=2500)
+                    print(f"    -> Submit button clicked (fallback selector)")
+                except Exception as e2:
+                    print(f"    [ERROR] Fallback also failed: {e2}")
 
             random_delay(2, 4)
 
