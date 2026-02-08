@@ -336,13 +336,17 @@ class CardmarketBot:
                     "Spanish": "4",
                     "Italian": "5",
                     "Portuguese": "8",
+                    "Japanese": "7",
+                    "Korean": '10',
                     # Español
                     "Inglés": "1",
                     "Francés": "2",
                     "Alemán": "3",
                     "Español": "4",
                     "Italiano": "5",
-                    "Portugués": "8"
+                    "Portugués": "8",
+                    "Coreano": "10",
+                    "Japonés": "7"
                 }
 
                 lang_value = lang_map.get(card['language'], None)
